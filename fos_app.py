@@ -95,6 +95,7 @@ html, body { background: var(--paper); color: var(--ink); font-family:"Outfit",s
 .vlbl { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: .3px; }
 </style>
 """)
+
 # ── 2. HELPER DATA UTILITIES ──────────────────────────────────────────
 RS = '₹'
 DB_FILE = "fos_data.xlsx"
@@ -141,7 +142,6 @@ st.html(f"""
 
 
 # ── ROUTING ENGINE: DETECT ADMIN QUERY PARAMETER ──────────────────────
-# URL checks if '?page=admin' is explicitly typed.
 is_admin_route = st.query_params.get("page") == "admin"
 
 if is_admin_route:
@@ -152,16 +152,13 @@ if is_admin_route:
     
     if uploaded_file is not None:
         try:
-            # Process and validate structures immediately before writing
             test_df = pd.read_excel(uploaded_file)
             if "FOS_Number" not in test_df.columns:
                 st.error("❌ Schema mismatch! File structure is missing required 'FOS_Number' column headers.")
             else:
-                # Overwrite master file sitting inside system backend
                 with open(DB_FILE, "wb") as f:
                     f.write(uploaded_file.getbuffer())
                 
-                # Clear system cache memory instantly so changes deploy globally
                 st.cache_data.clear()
                 st.success("🎉 Database successfully updated on the backend server! Active instances refreshed.")
         except Exception as e:
@@ -177,17 +174,17 @@ if is_admin_route:
 # ── VIEW SCREEN 1: SEARCH DIRECTORY (USER APP LINK) ───────────────────
 elif st.session_state.current_view == "search":
     if main_df.empty:
-        st.markdown("""
+        st.html("""
         <div style="text-align:center; padding: 40px 10px;">
             <h3>🌐 System Under Daily Maintenance</h3>
             <p style="color:var(--muted)">The database is currently updating. Please check back shortly.</p>
         </div>
-        """, unsafe_allow_html=True)
+        """)
     else:
         summary_grp = main_df.groupby(['FOS_Number', 'TM_Name', 'Zone_Manager', 'Zone_Name']).size().reset_index(name='count')
         total_outlets = len(main_df)
         
-        st.markdown(f"""
+        st.html(f"""
         <div class="search-pg">
             <div class="search-eyebrow">Field Officer Analytics</div>
             <div class="search-title">Today's Visit<br>Intelligence</div>
@@ -196,7 +193,7 @@ elif st.session_state.current_view == "search":
                 <span class="meta-chip">👤 {len(summary_grp)} FOS officers</span>
             </div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
         
         fos_options = [f"{row['FOS_Number']} — {row['TM_Name']} ({row['count']} OL)" for _, row in summary_grp.iterrows()]
         selected_input = st.selectbox("Select or Type FOS Officer Number:", options=[""] + fos_options, index=0)
@@ -321,7 +318,7 @@ elif st.session_state.current_view == "dashboard" and not main_df.empty:
             </div>
             """
 
-        st.markdown(f"""
+        st.html(f"""
         <div class="topbar">
             <div style="display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap">
                 <div>
@@ -332,7 +329,7 @@ elif st.session_state.current_view == "dashboard" and not main_df.empty:
                 {asc_badge_html}
             </div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
 
         alert_items = []
         if is_win and len(c75) > 0:
@@ -348,12 +345,12 @@ elif st.session_state.current_view == "dashboard" and not main_df.empty:
             alert_items.append(f'<div class="al al-g"><div class="al-ico">🧾</div><div><strong>{len(unbilled)} retailers</strong> with zero SIM billing Feb–Apr</div></div>')
 
         if alert_items:
-            st.markdown(f'<div class="alerts">{"".join(alert_items)}</div>', unsafe_allow_html=True)
+            st.html(f'<div class="alerts">{"".join(alert_items)}</div>')
 
         c75_sub_color = 'var(--red)' if len(c75nv) > 0 else 'var(--green)'
         c75_sub_txt = f"{len(c75nv)} not visited" if len(c75nv) > 0 else "All visited ✓"
         
-        st.markdown(f"""
+        st.html(f"""
         <div class="kpis">
             <div class="kpi kg"><div class="kpi-lbl">Club 75</div><div class="kpi-val" style="color:var(--gold)">{len(c75)}</div><div class="kpi-sub" style="color:{c75_sub_color}">{c75_sub_txt}</div></div>
             <div class="kpi kr"><div class="kpi-lbl">GT Gross APR MTD</div><div class="kpi-val">{int(totG)}</div><div class="kpi-sub">{actOL}/{len(gt)} active</div></div>
@@ -364,7 +361,7 @@ elif st.session_state.current_view == "dashboard" and not main_df.empty:
             <div class="kpi kr"><div class="kpi-lbl">Unbilled Feb–Apr</div><div class="kpi-val" style="color:var(--red)">{len(unbilled)}</div><div class="kpi-sub">retailers</div></div>
             <div class="kpi kp"><div class="kpi-lbl">SSO Outlets</div><div class="kpi-val">{len(ssoOL)}</div><div class="kpi-sub">active</div></div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
 
         window_pill = '<span class="pill pg">🏆 Club 75 Window</span>' if is_win else ''
         task_rows_html = ""
@@ -392,7 +389,7 @@ elif st.session_state.current_view == "dashboard" and not main_df.empty:
             </div>
             """
 
-        st.markdown(f"""
+        st.html(f"""
         <div class="sec">
             <div class="sec-hdr">
                 <div class="sec-t">🎯 Today's Visit Plan</div>
@@ -406,7 +403,7 @@ elif st.session_state.current_view == "dashboard" and not main_df.empty:
                 {task_rows_html}
             </div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
 
         if st.button("← Change FOS Officer Selection", use_container_width=True):
             st.session_state.current_view = "search"
