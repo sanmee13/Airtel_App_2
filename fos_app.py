@@ -16,7 +16,7 @@ st.html("""
     --green:#1a6640;--greenl:#e6f4ed;--blue:#1a3a8f;--bluel:#e6ecf8;--muted:#7a7568;--muted2:#a8a398;
     --sh:0 2px 8px rgba(15,17,23,.08),0 1px 3px rgba(15,17,23,.05);--sh2:0 8px 24px rgba(15,17,23,.12);
 }
-.block-container { padding-top: 0rem !important; padding-bottom: 2rem !important; max-width: 760px !important; }
+.block-container { padding-top: 1.5rem !important; padding-bottom: 2rem !important; max-width: 760px !important; }
 div[data-testid="stHeader"] { display: none; }
 html, body { background: var(--paper); color: var(--ink); font-family:"Outfit",sans-serif; }
 
