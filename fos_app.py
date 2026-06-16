@@ -7,7 +7,7 @@ import os
 st.set_page_config(page_title="FOS Intelligence — ASC Workways", page_icon="📍", layout="centered")
 
 # ── 1. INJECT CUSTOM FONTS AND CSS ────────────────────────────────────
-st.markdown("""
+st.html("""
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -94,8 +94,7 @@ html, body { background: var(--paper); color: var(--ink); font-family:"Outfit",s
 .vval { font-family: "IBM Plex Mono", monospace; font-size: 12px; font-weight: 700; color: var(--green); }
 .vlbl { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: .3px; }
 </style>
-""", unsafe_allow_html=True)
-
+""")
 # ── 2. HELPER DATA UTILITIES ──────────────────────────────────────────
 RS = '₹'
 DB_FILE = "fos_data.xlsx"
@@ -133,12 +132,12 @@ if "selected_fos" not in st.session_state:
 
 # Render Date Header banner
 formatted_date = datetime.datetime.now().strftime("%a, %d %b %Y")
-st.markdown(f"""
+st.html(f"""
 <div class="hdr">
   <div class="hdr-brand"><div class="hdr-dot"></div><span class="hdr-name">FOS INTELLIGENCE</span><span class="hdr-sub">ASC Workways</span></div>
   <div class="hdr-tag">{formatted_date}</div>
 </div>
-""", unsafe_allow_html=True)
+""")
 
 
 # ── ROUTING ENGINE: DETECT ADMIN QUERY PARAMETER ──────────────────────
