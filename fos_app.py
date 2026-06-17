@@ -199,17 +199,17 @@ elif st.session_state.current_view == "search":
         </div>
         """)
         
+        # Cleaned up input box and button logic (Duplicate block removed)
         selected_input = st.text_input(
-    "Enter FOS Officer Number:", 
-    value="", 
-    placeholder="Type FOS number here...", 
-    key="fos_search_input_unique"  # <-- Add this unique key parameter
-)
+            "Enter FOS Officer Number:", 
+            value="", 
+            placeholder="Type FOS number here...", 
+            key="fos_search_input_unique"
+        )
         
-        if st.button("View Dash →", use_container_width=True):
+        if st.button("View Dash →", use_container_width=True, key="fos_search_button_unique"):
             cleaned_input = str(selected_input).strip()
             if cleaned_input:
-                # Cast valid options to a set for fast, reliable matching
                 valid_fos_set = set(main_df['FOS_Number'].unique())
                 
                 if cleaned_input in valid_fos_set:
@@ -217,28 +217,11 @@ elif st.session_state.current_view == "search":
                     st.session_state.current_view = "dashboard"
                     st.rerun()
                 else:
-                    # Diagnostic fallback: Show up to 3 real examples from the sheet to reveal format issues
                     sample_formats = list(valid_fos_set)[:3]
                     sample_str = ", ".join([f"'{s}'" for s in sample_formats])
                     st.error(f"❌ FOS Number not found. Check formatting. Examples in your sheet look like: {sample_str}")
             else:
                 st.error("Please enter a valid FOS identifier.") 
-                
-        # CHANGED: Replaced selectbox with text_input so no list is exposed on click
-        selected_input = st.text_input("Enter FOS Officer Number:", value="", placeholder="Type FOS number here...")
-        
-        if st.button("View Dash →", use_container_width=True):
-            cleaned_input = str(selected_input).strip()
-            if cleaned_input:
-                # Validate if the typed FOS number exists in the database
-                if cleaned_input in main_df['FOS_Number'].values:
-                    st.session_state.selected_fos = cleaned_input
-                    st.session_state.current_view = "dashboard"
-                    st.rerun()
-                else:
-                    st.error("❌ FOS Number not found in the records. Please verify the entry.")
-            else:
-                st.error("Please enter a valid FOS identifier.")
 
 
 # ── VIEW SCREEN 2: DYNAMIC ANALYTICS DASHBOARD (USER APP LINK) ────────
