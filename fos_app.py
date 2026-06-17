@@ -27,7 +27,7 @@ html, body { background: var(--paper); color: var(--ink); font-family:"Outfit",s
 .hdr-sub { font-size: 10px; color: #6b7280; letter-spacing: 2px; text-transform: uppercase; margin-left: 4px; }
 .hdr-tag { font-family: "IBM Plex Mono", monospace; font-size: 11px; color: #6b7280; background: rgba(255,255,255,.06); padding: 4px 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,.08); }
 
-.search-pg { max-width: 520px; margin: 0 auto; padding: 20px 0px 40px; }
+.search-pg { max-width: 520px; margin: 0 auto; padding: 20px 0px 20px; }
 .search-eyebrow { font-size: 10px; font-weight: 600; color: var(--red); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 8px; }
 .search-title { font-family: "Syne", sans-serif; font-size: 32px; font-weight: 800; color: var(--ink); line-height: 1.15; margin-bottom: 12px; }
 .search-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 28px; }
@@ -116,17 +116,13 @@ def load_excel_database():
         return pd.DataFrame()
     try:
         df = pd.read_excel(DB_FILE)
-        
-        # Convert to string, strip spaces, and remove trailing '.0' if Excel read it as a float
         df['FOS_Number'] = df['FOS_Number'].astype(str).str.strip()
         df['FOS_Number'] = df['FOS_Number'].str.replace(r'\.0$', '', regex=True)
-        
         return df
     except Exception as e:
         st.error(f"❌ Error compiling data structures from Excel: {e}")
         return pd.DataFrame()
         
-# Import Database DataFrame
 main_df = load_excel_database()
 
 # ── 4. STATE SYSTEM SYNC ──────────────────────────────────────────────
@@ -134,6 +130,25 @@ if "current_view" not in st.session_state:
     st.session_state.current_view = "search"
 if "selected_fos" not in st.session_state:
     st.session_state.selected_fos = ""
+if "search_error" not in st.session_state:
+    st.session_state.search_error = ""
+
+# ── 5. SEARCH REDIRECTION CALLBACK ───────────────────────────────────
+def execute_search_action():
+    if "fos_input_key" in st.session_state:
+        val = str(st.session_state.fos_input_key).strip()
+        if val:
+            valid_fos_set = set(main_df['FOS_Number'].unique())
+            if val in valid_fos_set:
+                st.session_state.selected_fos = val
+                st.session_state.current_view = "dashboard"
+                st.session_state.search_error = ""
+            else:
+                sample_formats = list(valid_fos_set)[:3]
+                sample_str = ", ".join([f"'{s}'" for s in sample_formats])
+                st.session_state.search_error = f"❌ FOS Number not found. Examples: {sample_str}"
+        else:
+            st.session_state.search_error = "Please enter a valid FOS identifier."
 
 # Render Date Header banner
 formatted_date = datetime.datetime.now().strftime("%a, %d %b %Y")
@@ -143,7 +158,6 @@ st.html(f"""
   <div class="hdr-tag">{formatted_date}</div>
 </div>
 """)
-
 
 # ── ROUTING ENGINE: DETECT ADMIN QUERY PARAMETER ──────────────────────
 is_admin_route = st.query_params.get("page") == "admin"
@@ -199,37 +213,42 @@ elif st.session_state.current_view == "search":
         </div>
         """)
         
-        # CHANGED: Wrapped elements in a seamless form and generated side-by-side columns
-        with st.form(key="fos_search_form", border=False):
-            col1, col2 = st.columns([3, 1], vertical_alignment="end")
-            
-            with col1:
-                selected_input = st.text_input(
-                    "Enter FOS Officer Number:", 
-                    value="", 
-                    placeholder="Type FOS number here...", 
-                    key="fos_search_input_unique"
-                )
-                
-            with col2:
-                # form_submit_button triggers on click OR when pressing 'Enter' inside the text input box
-                submit_clicked = st.form_submit_button("View Dash →", use_container_width=True)
+        # Native safe side-by-side positioning without complex wrappers
+        col1, col2 = st.columns([3, 1])
         
+        with col1:
+            selected_input = st.text_input(
+                "Enter FOS Officer Number:", 
+                value="", 
+                placeholder="Type FOS number here...", 
+                key="fos_input_key",
+                on_change=execute_search_action
+            )
+            
+        with col2:
+            st.markdown("<div style='margin-top:24px;'></div>", unsafe_allow_html=True)
+            submit_clicked = st.button("View Dash →", use_container_width=True)
+            
         if submit_clicked:
-            cleaned_input = str(selected_input).strip()
-            if cleaned_input:
+            val = str(selected_input).strip()
+            if val:
                 valid_fos_set = set(main_df['FOS_Number'].unique())
-                
-                if cleaned_input in valid_fos_set:
-                    st.session_state.selected_fos = cleaned_input
+                if val in valid_fos_set:
+                    st.session_state.selected_fos = val
                     st.session_state.current_view = "dashboard"
+                    st.session_state.search_error = ""
                     st.rerun()
                 else:
                     sample_formats = list(valid_fos_set)[:3]
                     sample_str = ", ".join([f"'{s}'" for s in sample_formats])
-                    st.error(f"❌ FOS Number not found. Check formatting. Examples look like: {sample_str}")
+                    st.session_state.search_error = f"❌ FOS Number not found. Examples: {sample_str}"
+                    st.rerun()
             else:
-                st.error("Please enter a valid FOS identifier.") 
+                st.session_state.search_error = "Please enter a valid FOS identifier."
+                st.rerun()
+                
+        if st.session_state.search_error:
+            st.error(st.session_state.search_error)
 
 
 # ── VIEW SCREEN 2: DYNAMIC ANALYTICS DASHBOARD (USER APP LINK) ────────
@@ -241,6 +260,7 @@ elif st.session_state.current_view == "dashboard" and not main_df.empty:
         if st.button("Return to search"):
             st.session_state.current_view = "search"
             st.session_state.selected_fos = ""
+            st.session_state.search_error = ""
             st.rerun()
     else:
         f_row = fos_df.iloc[0]
@@ -434,4 +454,5 @@ elif st.session_state.current_view == "dashboard" and not main_df.empty:
         if st.button("← Change FOS Officer Selection", use_container_width=True):
             st.session_state.current_view = "search"
             st.session_state.selected_fos = ""
+            st.session_state.search_error = ""
             st.rerun()
