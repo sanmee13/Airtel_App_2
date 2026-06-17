@@ -195,16 +195,21 @@ elif st.session_state.current_view == "search":
         </div>
         """)
         
-        fos_options = [f"{row['FOS_Number']} — {row['TM_Name']} ({row['count']} OL)" for _, row in summary_grp.iterrows()]
-        selected_input = st.selectbox("Select or Type FOS Officer Number:", options=[""] + fos_options, index=0)
+        # CHANGED: Replaced selectbox with text_input so no list is exposed on click
+        selected_input = st.text_input("Enter FOS Officer Number:", value="", placeholder="Type FOS number here...")
         
         if st.button("View Dash →", use_container_width=True):
-            if selected_input:
-                st.session_state.selected_fos = selected_input.split(" — ")[0]
-                st.session_state.current_view = "dashboard"
-                st.rerun()
+            cleaned_input = str(selected_input).strip()
+            if cleaned_input:
+                # Validate if the typed FOS number exists in the database
+                if cleaned_input in main_df['FOS_Number'].values:
+                    st.session_state.selected_fos = cleaned_input
+                    st.session_state.current_view = "dashboard"
+                    st.rerun()
+                else:
+                    st.error("❌ FOS Number not found in the records. Please verify the entry.")
             else:
-                st.error("Please pick a valid FOS identifier from the dropdown directory path.")
+                st.error("Please enter a valid FOS identifier.")
 
 
 # ── VIEW SCREEN 2: DYNAMIC ANALYTICS DASHBOARD (USER APP LINK) ────────
@@ -215,6 +220,7 @@ elif st.session_state.current_view == "dashboard" and not main_df.empty:
         st.warning("No record structures located matching selection criteria.")
         if st.button("Return to search"):
             st.session_state.current_view = "search"
+            st.session_state.selected_fos = ""
             st.rerun()
     else:
         f_row = fos_df.iloc[0]
