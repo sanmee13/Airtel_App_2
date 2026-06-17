@@ -20,6 +20,9 @@ st.html("""
 div[data-testid="stHeader"] { display: none; }
 html, body { background: var(--paper); color: var(--ink); font-family:"Outfit",sans-serif; }
 
+/* Hide Streamlit's default "Press Enter to apply" instructions */
+div[data-testid="InputInstructions"] { display: none !important; }
+
 .hdr { background: var(--ink); padding: 0 20px; height: 52px; display: flex; align-items: center; justify-content: space-between; margin: 0 -20px 20px -20px; }
 .hdr-brand { display: flex; align-items: center; gap: 10px; }
 .hdr-dot { width: 8px; height: 8px; background: var(--red); border-radius: 50%; }
