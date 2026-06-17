@@ -133,23 +133,6 @@ if "selected_fos" not in st.session_state:
 if "search_error" not in st.session_state:
     st.session_state.search_error = ""
 
-# ── 5. SEARCH REDIRECTION CALLBACK ───────────────────────────────────
-def execute_search_action():
-    if "fos_input_key" in st.session_state:
-        val = str(st.session_state.fos_input_key).strip()
-        if val:
-            valid_fos_set = set(main_df['FOS_Number'].unique())
-            if val in valid_fos_set:
-                st.session_state.selected_fos = val
-                st.session_state.current_view = "dashboard"
-                st.session_state.search_error = ""
-            else:
-                sample_formats = list(valid_fos_set)[:3]
-                sample_str = ", ".join([f"'{s}'" for s in sample_formats])
-                st.session_state.search_error = f"❌ FOS Number not found. Examples: {sample_str}"
-        else:
-            st.session_state.search_error = "Please enter a valid FOS identifier."
-
 # Render Date Header banner
 formatted_date = datetime.datetime.now().strftime("%a, %d %b %Y")
 st.html(f"""
@@ -213,7 +196,6 @@ elif st.session_state.current_view == "search":
         </div>
         """)
         
-        # Native safe side-by-side positioning without complex wrappers
         col1, col2 = st.columns([3, 1])
         
         with col1:
@@ -221,8 +203,7 @@ elif st.session_state.current_view == "search":
                 "Enter FOS Officer Number:", 
                 value="", 
                 placeholder="Type FOS number here...", 
-                key="fos_input_key",
-                on_change=execute_search_action
+                key="fos_input_key"
             )
             
         with col2:
@@ -239,9 +220,7 @@ elif st.session_state.current_view == "search":
                     st.session_state.search_error = ""
                     st.rerun()
                 else:
-                    sample_formats = list(valid_fos_set)[:3]
-                    sample_str = ", ".join([f"'{s}'" for s in sample_formats])
-                    st.session_state.search_error = f"❌ FOS Number not found. Examples: {sample_str}"
+                    st.session_state.search_error = "❌ FOS number not found."
                     st.rerun()
             else:
                 st.session_state.search_error = "Please enter a valid FOS identifier."
