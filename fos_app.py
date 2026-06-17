@@ -116,12 +116,16 @@ def load_excel_database():
         return pd.DataFrame()
     try:
         df = pd.read_excel(DB_FILE)
+        
+        # Convert to string, strip spaces, and remove trailing '.0' if Excel read it as a float
         df['FOS_Number'] = df['FOS_Number'].astype(str).str.strip()
+        df['FOS_Number'] = df['FOS_Number'].str.replace(r'\.0$', '', regex=True)
+        
         return df
     except Exception as e:
         st.error(f"❌ Error compiling data structures from Excel: {e}")
         return pd.DataFrame()
-
+        
 # Import Database DataFrame
 main_df = load_excel_database()
 
@@ -195,6 +199,26 @@ elif st.session_state.current_view == "search":
         </div>
         """)
         
+        selected_input = st.text_input("Enter FOS Officer Number:", value="", placeholder="Type FOS number here...")
+        
+        if st.button("View Dash →", use_container_width=True):
+            cleaned_input = str(selected_input).strip()
+            if cleaned_input:
+                # Cast valid options to a set for fast, reliable matching
+                valid_fos_set = set(main_df['FOS_Number'].unique())
+                
+                if cleaned_input in valid_fos_set:
+                    st.session_state.selected_fos = cleaned_input
+                    st.session_state.current_view = "dashboard"
+                    st.rerun()
+                else:
+                    # Diagnostic fallback: Show up to 3 real examples from the sheet to reveal format issues
+                    sample_formats = list(valid_fos_set)[:3]
+                    sample_str = ", ".join([f"'{s}'" for s in sample_formats])
+                    st.error(f"❌ FOS Number not found. Check formatting. Examples in your sheet look like: {sample_str}")
+            else:
+                st.error("Please enter a valid FOS identifier.") 
+                
         # CHANGED: Replaced selectbox with text_input so no list is exposed on click
         selected_input = st.text_input("Enter FOS Officer Number:", value="", placeholder="Type FOS number here...")
         
