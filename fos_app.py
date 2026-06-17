@@ -199,15 +199,23 @@ elif st.session_state.current_view == "search":
         </div>
         """)
         
-        # Cleaned up input box and button logic (Duplicate block removed)
-        selected_input = st.text_input(
-            "Enter FOS Officer Number:", 
-            value="", 
-            placeholder="Type FOS number here...", 
-            key="fos_search_input_unique"
-        )
+        # CHANGED: Wrapped elements in a seamless form and generated side-by-side columns
+        with st.form(key="fos_search_form", border=False):
+            col1, col2 = st.columns([3, 1], vertical_alignment="end")
+            
+            with col1:
+                selected_input = st.text_input(
+                    "Enter FOS Officer Number:", 
+                    value="", 
+                    placeholder="Type FOS number here...", 
+                    key="fos_search_input_unique"
+                )
+                
+            with col2:
+                # form_submit_button triggers on click OR when pressing 'Enter' inside the text input box
+                submit_clicked = st.form_submit_button("View Dash →", use_container_width=True)
         
-        if st.button("View Dash →", use_container_width=True, key="fos_search_button_unique"):
+        if submit_clicked:
             cleaned_input = str(selected_input).strip()
             if cleaned_input:
                 valid_fos_set = set(main_df['FOS_Number'].unique())
@@ -219,7 +227,7 @@ elif st.session_state.current_view == "search":
                 else:
                     sample_formats = list(valid_fos_set)[:3]
                     sample_str = ", ".join([f"'{s}'" for s in sample_formats])
-                    st.error(f"❌ FOS Number not found. Check formatting. Examples in your sheet look like: {sample_str}")
+                    st.error(f"❌ FOS Number not found. Check formatting. Examples look like: {sample_str}")
             else:
                 st.error("Please enter a valid FOS identifier.") 
 
