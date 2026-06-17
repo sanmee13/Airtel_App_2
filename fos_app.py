@@ -199,7 +199,12 @@ elif st.session_state.current_view == "search":
         </div>
         """)
         
-        selected_input = st.text_input("Enter FOS Officer Number:", value="", placeholder="Type FOS number here...")
+        selected_input = st.text_input(
+    "Enter FOS Officer Number:", 
+    value="", 
+    placeholder="Type FOS number here...", 
+    key="fos_search_input_unique"  # <-- Add this unique key parameter
+)
         
         if st.button("View Dash →", use_container_width=True):
             cleaned_input = str(selected_input).strip()
